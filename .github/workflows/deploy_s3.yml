@@ -32,21 +32,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Configura le credenziali AWS
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Checkout del codice
+        uses: actions/checkout@v3
+
+      - name: Scarica gli artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output
+          path: ${{ inputs.SOURCE_DIR }}
+
+      - name: Configura AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ inputs.AWS_REGION }}
 
-      - name: Sincronizza i file su S3
-        run: |
-          aws s3 sync ${{ inputs.SOURCE_DIR }} s3://${{ inputs.S3_BUCKET }} --delete
+      - name: Sincronizza con S3
+        run: aws s3 sync ${{ inputs.SOURCE_DIR }} s3://${{ inputs.S3_BUCKET }} --delete
 
-      - name: Invalida la distribuzione CloudFront
-        if: ${{ inputs.INVALIDATE_CLOUDFRONT == 'true' && inputs.DISTRIBUTION_ID != '' }}
+      - name: Invalidare CloudFront
+        if: ${{ inputs.INVALIDATE_CLOUDFRONT }}
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ inputs.DISTRIBUTION_ID }} --paths "/*"
