@@ -1,0 +1,52 @@
+name: Deploy to S3 and Invalidate CloudFront
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        description: 'AWS Region'
+        required: true
+        type: string
+      S3_BUCKET:
+        description: 'S3 Bucket Name'
+        required: true
+        type: string
+      SOURCE_DIR:
+        description: 'Directory to upload to S3'
+        required: true
+        type: string
+      INVALIDATE_CLOUDFRONT:
+        description: 'Whether to invalidate CloudFront cache'
+        required: false
+        type: boolean
+        default: false
+      DISTRIBUTION_ID:
+        description: 'CloudFront Distribution ID'
+        required: false
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        description: 'AWS Role ARN to Assume'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Configura le credenziali AWS
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.AWS_REGION }}
+
+      - name: Sincronizza i file su S3
+        run: |
+          aws s3 sync ${{ inputs.SOURCE_DIR }} s3://${{ inputs.S3_BUCKET }} --delete
+
+      - name: Invalida la distribuzione CloudFront
+        if: ${{ inputs.INVALIDATE_CLOUDFRONT == 'true' && inputs.DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.DISTRIBUTION_ID }} --paths "/*"
