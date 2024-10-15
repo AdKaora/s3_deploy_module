@@ -15,13 +15,8 @@ on:
         description: 'Directory to upload to S3'
         required: true
         type: string
-      INVALIDATE_CLOUDFRONT:
-        description: 'Whether to invalidate CloudFront cache'
-        required: false
-        type: boolean
-        default: false
       DISTRIBUTION_ID:
-        description: 'CloudFront Distribution ID'
+        description: 'CloudFront Distribution ID (optional)'
         required: false
         type: string
     secrets:
@@ -52,6 +47,6 @@ jobs:
         run: aws s3 sync ${{ inputs.SOURCE_DIR }} s3://${{ inputs.S3_BUCKET }} --delete
 
       - name: Invalidare CloudFront
-        if: ${{ inputs.INVALIDATE_CLOUDFRONT }}
+        if: ${{ inputs.DISTRIBUTION_ID }}
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ inputs.DISTRIBUTION_ID }} --paths "/*"
