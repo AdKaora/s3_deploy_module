@@ -18,7 +18,6 @@ Il workflow accetta i seguenti input:
 | `AWS_REGION`        | Regione AWS                                 | Sì        | string  | -                  |
 | `S3_BUCKET`         | Nome del bucket S3                           | Sì        | string  | -                  |
 | `SOURCE_DIR`        | Directory da caricare su S3                 | Sì        | string  | -                  |
-| `INVALIDATE_CLOUDFRONT` | Se invalidare la cache di CloudFront         | No        | boolean | `false`            |
 | `DISTRIBUTION_ID`   | ID della distribuzione CloudFront            | No        | string  | -                  |
 
 ## Secrets
