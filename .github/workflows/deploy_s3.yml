@@ -39,7 +39,7 @@ jobs:
       - name: Scarica gli artifact
         uses: actions/download-artifact@v3
         with:
-          name: build-output
+          name: ${{ inputs.SOURCE_DIR }}
           path: ${{ inputs.SOURCE_DIR }}
 
       - name: Configura AWS CLI
